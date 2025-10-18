@@ -1,0 +1,53 @@
+services:
+  letta:
+    image: letta/letta:latest
+    container_name: letta
+    ports:
+      - "8283:8283"
+    expose:
+      - "8283"
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.letta.rule=Host(`letta.delo.sh`)"
+      - "traefik.http.routers.letta.entrypoints=websecure"
+      - "traefik.http.routers.letta.tls.certresolver=letsencrypt"
+      - "traefik.http.services.letta.loadbalancer.server.port=8283"
+      - "traefik.docker.network=proxy"
+    environment:
+      - OPENAI_API_KEY=${OPENAI_API_KEY}
+      - ANTHROPIC_API_KEY=${ANTHROPIC_API_KEY}
+      - OPENAI_API_BASE=https://openrouter.ai/api/v1
+      - OPENROUTER_API_KEY=${OPENROUTER_API_KEY}
+      - DATABASE_URL=postgresql://delorenj:uje*hvj2apy7tve7ATR@letta-postgres:5432/letta
+      - GROQ_API_KEY=${GROQ_API_KEY}
+      - GEMINI_API_KEY=${GEMINI_API_KEY}
+      - DELONET_API_KEY=${DELONET_API_KEY}
+      - LETTA_CLOUD_URL=
+      - LETTA_SELF_HOSTED=true
+      - LETTA_DISABLE_CLOUD_REDIRECT=true
+      - LETTA_DEFAULT_VIEW_MODE=selfHosted
+    networks:
+      - proxy
+    restart: unless-stopped
+
+  letta-postgres:
+    image: postgres:17
+    container_name: letta-postgres
+    environment:
+      - POSTGRES_USER=delorenj
+      - POSTGRES_PASSWORD=uje*hvj2apy7tve7ATR
+      - POSTGRES_DB=letta
+    volumes:
+      - letta_letta_postgres_data:/var/lib/postgresql/data
+    networks:
+      - proxy
+    restart: unless-stopped
+
+networks:
+  proxy:
+    name: proxy
+    external: true
+
+volumes:
+  letta_letta_postgres_data:
+    external: true
